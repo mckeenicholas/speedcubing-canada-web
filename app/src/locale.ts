@@ -120,6 +120,7 @@ export const resources = {
         postalcode: "Postal Code",
         distance: "Distance",
         region: "Region",
+        notfound: "\n\nUnable to find the postal code {{postalcode}}."
       },
       regions: {
         at: "Atlantic",

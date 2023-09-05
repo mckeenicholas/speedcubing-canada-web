@@ -1,4 +1,4 @@
-import { Button, Box, Container, Typography, SelectChangeEvent, OutlinedInput, MenuItem, Select, FormControl, InputLabel, CircularProgress, InputAdornment, IconButton, Tooltip } from "@mui/material";
+import { Button, Box, Container, Typography, SelectChangeEvent, OutlinedInput, MenuItem, Select, FormControl, InputLabel, CircularProgress, InputAdornment, IconButton, Tooltip, } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Link } from "../components/Link";
 import { LINKS } from "./links";
@@ -14,14 +14,13 @@ export const Competitions = () => {
   const [postalCode, setPostalCode] = useState('');
   const [locationInfo, setLocationInfo] = useState<any>({});
   const [filteredComps, setFilteredComps] = useState<any[]>([]);
-
-  let currentDate = new Date()
+  const [invalidPostalCode, setInvalidPostalCode] = useState(false);
+  const [invalidPostalCodeName, setInvalidPostalCodeName] = useState("");
   
   // Get a list of announced competitions within Canada
   const getCompetitions = async () => {
     const response = await fetch(LINKS.WCA.API.COMPETITION_LIST);
-    const data = await response.json();
-    return data;
+    return await response.json();
   }
 
   // Hook to update the competitions displayed on the site, and filter out any past competitions
@@ -33,7 +32,7 @@ export const Competitions = () => {
       // The WCA's list can sometimes be cached, so remove past compeitions
       const filteredCompetitions = competitions.filter((competition: any) => {
         const endDate = new Date(competition.end_date + "T12:00:00.000Z");
-        return endDate > currentDate;
+        return endDate > new Date();
       });
       setFilteredComps(filteredCompetitions);
     };
@@ -80,24 +79,40 @@ export const Competitions = () => {
   }
 
   // Find coordinates from postal code
-  const geocode = async (postalCode: string) => {
-    if(distance !== 0 && removeWhitespaceAndCase(locationInfo.name) !== removeWhitespaceAndCase(postalCode)) {
+  const geocode = async (postCode: string) => {
       const apiUrl = `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&format=json`;
       const response = await fetch(apiUrl);
       const data = await response.json();
+      if (data === undefined || data.length === 0) {
+        setInvalidPostalCode(true);
+        setInvalidPostalCodeName(postCode);
+        return null;
+      }
+      setInvalidPostalCode(false);
       setLocationInfo(data[0]);
       return data[0];
-    }
-    return locationInfo
   };
 
   // Event handler for the search button, finds the user's coordinates based off their inputted postal code, then filters out competitions
   const handleButtonClick = async (event: any) => {
-    const location = await geocode(postalCode);
+    let location = locationInfo;
+    if(distance !== 0 && removeWhitespaceAndCase(locationInfo.name) !== removeWhitespaceAndCase(postalCode)) {
+      location = await geocode(postalCode);
+    }
     let displayedComps = [];
-    for (const competition of competitionList) {
-      if ((distance === 0 || findDistance(competition.latitude_degrees, competition.longitude_degrees, location.lat, location.lon) < Number(distance)) && new Date(competition.end_date + "T12:00:00.000Z") > currentDate) {
-        displayedComps.push(competition);
+    if (distance === 0) {
+      displayedComps = competitionList.filter((competition: any) => {
+        const endDate = new Date(competition.end_date + "T12:00:00.000Z");
+        return endDate > new Date();
+      });
+      setFilteredComps(displayedComps);
+      setInvalidPostalCode(false);
+      return
+    } else if (location !== null) {
+      for (const competition of competitionList) {
+        if (findDistance(competition.latitude_degrees, competition.longitude_degrees, location.lat, location.lon) < Number(distance) && new Date(competition.end_date + "T12:00:00.000Z") > new Date()) {
+          displayedComps.push(competition);
+        }
       }
     }
     setFilteredComps(displayedComps);
@@ -126,9 +141,7 @@ export const Competitions = () => {
       Math.cos(radLat1) * Math.cos(radLat2) * Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   
-    const distance: number = earthRadius * c;
-  
-    return distance;
+    return earthRadius * c;
   }
 
   return (
@@ -165,7 +178,7 @@ export const Competitions = () => {
             <FormControl sx={{ width: '15ch' }}>
               <InputLabel htmlFor="postal-code-box">{t("competition.postalcode")}</InputLabel>
               <OutlinedInput
-                id="postal-code"
+                error={invalidPostalCode}
                 value={postalCode}
                 onChange={handleInputChange}
                 endAdornment={
@@ -190,28 +203,33 @@ export const Competitions = () => {
           </Box>
         </Typography>
       </Box> 
-      { isLoading
-        ? <Box margin="4rem">
-            <CircularProgress />
-          </Box> 
-        : <Box display="flex" justifyContent="center" flexWrap="wrap">
-          { filteredComps.slice().reverse().map((item: any, index: any) => (
-            <Box margin="1rem" padding="1rem" key = {index}>
+      {isLoading ? (
+        <Box margin="4rem">
+          <CircularProgress />
+        </Box>
+      ) : invalidPostalCode ? (
+        <Typography gutterBottom sx={{ maxWidth: "md", margin: "0 auto" }}>
+          {t("competition.notfound", {postalcode: invalidPostalCodeName})}
+        </Typography>
+      ) : (
+        <Box display="flex" justifyContent="center" flexWrap="wrap">
+          {filteredComps.slice().reverse().map((item: any, index: any) => (
+            <Box margin="1rem" padding="1rem" key={index}>
               <Typography variant="h5" fontWeight="bold">
-                { item.name }
+                {item.name}
               </Typography>
               <Typography gutterBottom maxWidth="400px">
-                {new Date(item.start_date + "T12:00:00.000Z").toLocaleString("en-US", {month: "long"})}
-                { " | " }
-                { item.city }
-              </Typography> 
-              <Button to={ `competitions/${item.id}` } component={Link} variant="contained" size="large">
+                {new Date(item.start_date + "T12:00:00.000Z").toLocaleString("en-US", { month: "long" })}
+                {" | "}
+                {item.city}
+              </Typography>
+              <Button to={`competitions/${item.id}`} component={Link} variant="contained" size="large">
                 {t("competition.learnmore")}
               </Button>
             </Box>
           ))}
         </Box>
-      }
+      )}
     </Container>
   );
 };
