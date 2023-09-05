@@ -73,27 +73,25 @@ export const Competitions = () => {
   }
 
   const geocode = async (postalCode: string) => {
-    const apiUrl = `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&format=json`;
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    setLocationInfo(data[0]);
+    if(distance !== 0 && removeWhitespaceAndCase(locationInfo.name) !== removeWhitespaceAndCase(postalCode)) {
+      const apiUrl = `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&format=json`;
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      setLocationInfo(data[0]);
+      return data[0];
+    }
+    return locationInfo
   };
 
   const handleButtonClick = async (event: any) => {
-    if(distance !== 0 && removeWhitespaceAndCase(locationInfo.name) !== removeWhitespaceAndCase(postalCode)) {
-      //Searching new postal code, so make an API request to find location
-      await geocode(postalCode);
-    }
+    const location = await geocode(postalCode);
     let displayedComps = [];
-    while(!locationInfo) {
-      console.log("hi");
-    }
-      for (const competition of competitionList) {
-        if ((distance === 0 || findDistance(competition.latitude_degrees, competition.longitude_degrees, locationInfo.lat, locationInfo.lon) < Number(distance)) && new Date(competition.end_date + "T12:00:00.000Z") > currentDate) {
-          displayedComps.push(competition);
-        }
+    for (const competition of competitionList) {
+      if ((distance === 0 || findDistance(competition.latitude_degrees, competition.longitude_degrees, location.lat, location.lon) < Number(distance)) && new Date(competition.end_date + "T12:00:00.000Z") > currentDate) {
+        displayedComps.push(competition);
       }
-      setFilteredComps(displayedComps);
+    }
+    setFilteredComps(displayedComps);
   }
 
   const removeWhitespaceAndCase = (input: string) => {
