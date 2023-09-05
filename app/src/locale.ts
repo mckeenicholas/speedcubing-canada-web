@@ -115,7 +115,10 @@ export const resources = {
         address: "<b>Address:</b> {{address}}\n",
         register: "Register",
         learnmore: "Learn more",
-        showonly: "Only show competitions in: ",
+        showonly1: "Show competitions within:",
+        showonly2: "of",
+        postalcode: "Postal Code",
+        distance: "Distance",
         region: "Region",
       },
       regions: {

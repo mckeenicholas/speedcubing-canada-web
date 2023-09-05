@@ -1,32 +1,22 @@
-import { Button, Box, Container, Typography, SelectChangeEvent, OutlinedInput, MenuItem, ListItemText, Checkbox, Select, FormControl, InputLabel, CircularProgress } from "@mui/material";
+import { Button, Box, Container, Typography, SelectChangeEvent, OutlinedInput, MenuItem, Select, FormControl, InputLabel, CircularProgress, InputAdornment, IconButton, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Link } from "../components/Link";
 import { LINKS } from "./links";
-import { Province } from "../components/Types";
-import { GetProvinces } from "../components/Provinces";
 import { useState, useEffect } from "react";
-import React from "react";
-
-const NUM_ITEMS = 6;
-const ITEM_HEIGHT = 56;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * NUM_ITEMS + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-
-const provinces: Province[] = GetProvinces();
+import { LocationOn, ArrowForward } from '@mui/icons-material';
 
 export const Competitions = () => {
   const { t } = useTranslation();
 
-  const [data, setData] = useState<any>({});
+  const [competitionList, setCompetitionList] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true); 
+  const [distance, setDistance] = useState<number>(0);
+  const [postalCode, setPostalCode] = useState('');
+  const [locationInfo, setLocationInfo] = useState<any>({});
+  const [filteredComps, setFilteredComps] = useState<any[]>([]);
 
+  let currentDate = new Date()
+  
   const getCompetitions = async () => {
     const response = await fetch(LINKS.WCA.API.COMPETITION_LIST);
     const data = await response.json();
@@ -34,32 +24,108 @@ export const Competitions = () => {
   }
 
   useEffect(() => {
-    const getData = async () => {
+    const getCompetitionList = async () => {
       const competitions = await getCompetitions();
-      setData(competitions);
+      setCompetitionList(competitions);
       setIsLoading(false);
+      const filteredCompetitions = competitions.filter((competition: any) => {
+        const endDate = new Date(competition.end_date + "T12:00:00.000Z");
+        return endDate > currentDate;
+      });
+      setFilteredComps(filteredCompetitions);
     };
-    getData();
+    getCompetitionList();
   }, []); 
 
-  const [selectedRegions, setRegions] = React.useState<string[]>([]);
-
-  const handleChange = (event: SelectChangeEvent<typeof selectedRegions>) => {
-    const {
-      target: { value },
-    } = event;
-    setRegions(
-      typeof value === 'string' ? value.split(',') : value,
-    );
+  const handleChange = (event: SelectChangeEvent) => {
+    setDistance(parseInt(event.target.value, 10));
   };
 
-  const displayedComps = Object.keys(data).filter((key) => {
-    const province = data[key].city.split(", ")[1];
-    const startDate = new Date(data[key].start_date);
-    return startDate > new Date() && (selectedRegions.length === 0 || provinces.some((provinceItem) => provinceItem.label === province && selectedRegions.includes(provinceItem.region_id)));
-  }).map((key) => data[key]);
+  const handleInputChange = (event: any) => {
+    setPostalCode(event.target.value); 
+  };
 
-  const regions = Array.from(new Set(provinces.map((province) => province.region_id)));
+  const handleGetLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        await reverseGeocode(position.coords.latitude, position.coords.longitude);
+        setLocationInfo({
+          name: postalCode,
+          lat: Number(position.coords.latitude),
+          lon: Number(position.coords.longitude),
+        })
+      }, (error) => {
+        console.error("Error getting user's location:", error.message);
+        // Handle the error gracefully if needed
+      });
+    } else {
+      console.error("Geolocation is not supported in this browser.");
+      // Handle the lack of geolocation support gracefully if needed
+    }
+  };
+
+  const reverseGeocode = async (latitude: number, longitude:number) => {
+    const apiUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&addressdetails=1&format=jsonv2`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    setLocationInfo(data);
+    setPostalCode(data.address.postcode);
+  }
+
+  const geocode = async (postalCode: string) => {
+    const apiUrl = `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&format=json`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    setLocationInfo(data[0]);
+  };
+
+  const handleButtonClick = async (event: any) => {
+    if(distance !== 0 && removeWhitespaceAndCase(locationInfo.name) !== removeWhitespaceAndCase(postalCode)) {
+      //Searching new postal code, so make an API request to find location
+      await geocode(postalCode);
+    }
+    let displayedComps = [];
+    while(!locationInfo) {
+      console.log("hi");
+    }
+      for (const competition of competitionList) {
+        if ((distance === 0 || findDistance(competition.latitude_degrees, competition.longitude_degrees, locationInfo.lat, locationInfo.lon) < Number(distance)) && new Date(competition.end_date + "T12:00:00.000Z") > currentDate) {
+          displayedComps.push(competition);
+        }
+      }
+      setFilteredComps(displayedComps);
+  }
+
+  const removeWhitespaceAndCase = (input: string) => {
+    if (input === undefined) {
+      return '';
+    }
+    return input.replace(/\s+/g, '').toLowerCase();
+  }
+  
+  const findDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    // The radius of the Earth in kilometers
+    const earthRadius = 6371;
+  
+    // Convert latitude and longitude from degrees to radians
+    const radLat1 = (Math.PI / 180) * lat1;
+    const radLon1 = (Math.PI / 180) * lon1;
+    const radLat2 = (Math.PI / 180) * lat2;
+    const radLon2 = (Math.PI / 180) * lon2;
+  
+    // Haversine formula
+    const dLat = radLat2 - radLat1;
+    const dLon = radLon2 - radLon1;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(radLat1) * Math.cos(radLat2) * Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  
+    // Calculate the distance
+    const distance: number = earthRadius * c;
+  
+    return distance;
+  }
 
   return (
     <Container maxWidth="xl" style={{ textAlign: "center" }}>
@@ -70,30 +136,53 @@ export const Competitions = () => {
         <Typography gutterBottom  sx={{ maxWidth: "md", margin: "0 auto"}}>
           {t("competition.upcomingbody")}
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-            {t("competition.showonly")}
-            <FormControl sx={{ minWidth: 200, textAlign: "left" }}>
-              <InputLabel id="multiple-checkbox-label">{t("competition.region")}</InputLabel>
-                <Select
-                  labelId="province-selection-label"
-                  id="province-selection"
-                  multiple
-                  value={selectedRegions} 
-                  onChange={handleChange}
-                  input={<OutlinedInput label="Region" />}
-                  renderValue={(selected: any[]) => {
-                    const translatedRegions = selected.map(region => t(`regions.${region}`));
-                    return translatedRegions.sort().join(", ");
-                  }}
-                  MenuProps={MenuProps}
-                  >
-                  {regions.sort().map((region: string) => (
-                    <MenuItem key={ region } value={ region }>
-                    <Checkbox checked={ selectedRegions.indexOf(region) > -1 } />
-                    <ListItemText primary={ t(`regions.${region}`) } />
-                  </MenuItem>
-                  ))}
+            {t("competition.showonly1")}
+            <FormControl sx={{ width: '15ch' }}>
+              <InputLabel sx={{ textAlign: 'left' }} id="distance-selection">
+                {t("competition.distance")}
+                </InputLabel>
+              <Select
+                labelId="distance-selection"
+                id="distance-selection"
+                value={distance.toString()}
+                label="Distnace"
+                onChange={handleChange}
+              >
+                <MenuItem value={20}>20 km</MenuItem>
+                <MenuItem value={50}>50 km</MenuItem>
+                <MenuItem value={100}>100 km</MenuItem>
+                <MenuItem value={200}>200 km</MenuItem>
+                <MenuItem value={500}>500 km</MenuItem>
+                <MenuItem value={1000}>1000 km</MenuItem>
+                <MenuItem value={0}>Any distance</MenuItem>
               </Select>
             </FormControl>
+            {t("competition.showonly2")}
+            <FormControl sx={{ width: '15ch' }}>
+              <InputLabel htmlFor="postal-code-box">{t("competition.postalcode")}</InputLabel>
+              <OutlinedInput
+                id="postal-code"
+                value={postalCode}
+                onChange={handleInputChange}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <Tooltip title="Use my current location">
+                      <IconButton
+                        aria-label="get location"
+                        onClick={handleGetLocation}
+                        edge="end"
+                      >
+                        <LocationOn />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                }
+                label="Postal Code"
+              />
+            </FormControl>
+            <Button onClick={handleButtonClick} variant="contained" size="large">
+              <ArrowForward />
+            </Button>
           </Box>
         </Typography>
       </Box> 
@@ -102,7 +191,7 @@ export const Competitions = () => {
             <CircularProgress />
           </Box> 
         : <Box display="flex" justifyContent="center" flexWrap="wrap">
-          { displayedComps.reverse().map((item, index) => (
+          { filteredComps.slice().reverse().map((item: any, index: any) => (
             <Box margin="1rem" padding="1rem" key = {index}>
               <Typography variant="h5" fontWeight="bold">
                 { item.name }
