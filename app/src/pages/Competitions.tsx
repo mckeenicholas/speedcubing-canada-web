@@ -17,17 +17,20 @@ export const Competitions = () => {
 
   let currentDate = new Date()
   
+  // Get a list of announced competitions within Canada
   const getCompetitions = async () => {
     const response = await fetch(LINKS.WCA.API.COMPETITION_LIST);
     const data = await response.json();
     return data;
   }
 
+  // Hook to update the competitions displayed on the site, and filter out any past competitions
   useEffect(() => {
     const getCompetitionList = async () => {
       const competitions = await getCompetitions();
       setCompetitionList(competitions);
       setIsLoading(false);
+      // The WCA's list can sometimes be cached, so remove past compeitions
       const filteredCompetitions = competitions.filter((competition: any) => {
         const endDate = new Date(competition.end_date + "T12:00:00.000Z");
         return endDate > currentDate;
@@ -37,14 +40,17 @@ export const Competitions = () => {
     getCompetitionList();
   }, []); 
 
+  // Event handler for distance dropdown
   const handleChange = (event: SelectChangeEvent) => {
     setDistance(parseInt(event.target.value, 10));
   };
 
+  // Event handler for postal code input field
   const handleInputChange = (event: any) => {
     setPostalCode(event.target.value); 
   };
 
+  // Handle if the user selects location automatically
   const handleGetLocation = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
@@ -64,6 +70,7 @@ export const Competitions = () => {
     }
   };
 
+  // Find postal code to display if user selects locaiton automatically
   const reverseGeocode = async (latitude: number, longitude:number) => {
     const apiUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&addressdetails=1&format=jsonv2`;
     const response = await fetch(apiUrl);
@@ -72,6 +79,7 @@ export const Competitions = () => {
     setPostalCode(data.address.postcode);
   }
 
+  // Find coordinates from postal code
   const geocode = async (postalCode: string) => {
     if(distance !== 0 && removeWhitespaceAndCase(locationInfo.name) !== removeWhitespaceAndCase(postalCode)) {
       const apiUrl = `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&format=json`;
@@ -83,6 +91,7 @@ export const Competitions = () => {
     return locationInfo
   };
 
+  // Event handler for the search button, finds the user's coordinates based off their inputted postal code, then filters out competitions
   const handleButtonClick = async (event: any) => {
     const location = await geocode(postalCode);
     let displayedComps = [];
@@ -93,7 +102,7 @@ export const Competitions = () => {
     }
     setFilteredComps(displayedComps);
   }
-
+ 
   const removeWhitespaceAndCase = (input: string) => {
     if (input === undefined) {
       return '';
@@ -101,17 +110,15 @@ export const Competitions = () => {
     return input.replace(/\s+/g, '').toLowerCase();
   }
   
+  // Find the distance in km between two sets of coordinates using Haversine formula
   const findDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    // The radius of the Earth in kilometers
     const earthRadius = 6371;
-  
-    // Convert latitude and longitude from degrees to radians
+
     const radLat1 = (Math.PI / 180) * lat1;
     const radLon1 = (Math.PI / 180) * lon1;
     const radLat2 = (Math.PI / 180) * lat2;
     const radLon2 = (Math.PI / 180) * lon2;
   
-    // Haversine formula
     const dLat = radLat2 - radLat1;
     const dLon = radLon2 - radLon1;
     const a =
@@ -119,7 +126,6 @@ export const Competitions = () => {
       Math.cos(radLat1) * Math.cos(radLat2) * Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   
-    // Calculate the distance
     const distance: number = earthRadius * c;
   
     return distance;
