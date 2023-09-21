@@ -26,11 +26,12 @@ export const Competitions = () => {
   const [competitionList, setCompetitionList] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [distance, setDistance] = useState<number>(0);
-  const [postalCode, setPostalCode] = useState("");
+  const [displayLocation, setDisplayLocation] = useState("");
   const [locationInfo, setLocationInfo] = useState<any>({});
   const [filteredComps, setFilteredComps] = useState<any[]>([]);
-  const [invalidPostalCode, setInvalidPostalCode] = useState(false);
-  const [invalidPostalCodeName, setInvalidPostalCodeName] = useState("");
+  const [invalidLocation, setInvalidLocation] = useState(false);
+  const [invalidLocationName, setInvalidLocationName] = useState("");
+  const [noCompetitionsFound, setNoCompetitionsFound] = useState(false);
 
   // Get a list of announced competitions within Canada
   const getCompetitions = async () => {
@@ -61,7 +62,7 @@ export const Competitions = () => {
 
   // Event handler for postal code input field
   const handleInputChange = (event: any) => {
-    setPostalCode(event.target.value);
+    setDisplayLocation(event.target.value);
   };
 
   // Handle if the user selects location automatically
@@ -73,11 +74,11 @@ export const Competitions = () => {
             position.coords.latitude,
             position.coords.longitude,
           );
-          setLocationInfo({
-            name: postalCode,
-            lat: Number(position.coords.latitude),
-            lon: Number(position.coords.longitude),
-          });
+          // setLocationInfo({
+          //   name: displayLocation,
+          //   lat: Number(position.coords.latitude),
+          //   lon: Number(position.coords.longitude),
+          // });
         },
         (error) => {
           console.error("Error getting user's location:", error.message);
@@ -96,20 +97,20 @@ export const Competitions = () => {
     const response = await fetch(apiUrl);
     const data = await response.json();
     setLocationInfo(data);
-    setPostalCode(data.address.postcode);
+    setDisplayLocation(data.address.city);
   };
 
   // Find coordinates from postal code
-  const geocode = async (postCode: string) => {
-    const apiUrl = `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&format=json`;
+  const geocode = async (location: string) => {
+    const apiUrl = `https://nominatim.openstreetmap.org/search?city=${displayLocation}&format=json`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     if (data === undefined || data.length === 0) {
-      setInvalidPostalCode(true);
-      setInvalidPostalCodeName(postCode);
+      setInvalidLocation(true);
+      setInvalidLocationName(location);
       return null;
     }
-    setInvalidPostalCode(false);
+    setInvalidLocation(false);
     setLocationInfo(data[0]);
     return data[0];
   };
@@ -117,12 +118,8 @@ export const Competitions = () => {
   // Event handler for the search button, finds the user's coordinates based off their inputted postal code, then filters out competitions
   const handleButtonClick = async (event: any) => {
     let location = locationInfo;
-    if (
-      distance !== 0 &&
-      removeWhitespaceAndCase(locationInfo.name) !==
-        removeWhitespaceAndCase(postalCode)
-    ) {
-      location = await geocode(postalCode);
+    if (distance !== 0 && locationInfo.name !== displayLocation) {
+      location = await geocode(displayLocation);
     }
     let displayedComps = [];
     if (distance === 0) {
@@ -131,7 +128,7 @@ export const Competitions = () => {
         return endDate > new Date();
       });
       setFilteredComps(displayedComps);
-      setInvalidPostalCode(false);
+      setInvalidLocation(false);
       return;
     } else if (location !== null) {
       for (const competition of competitionList) {
@@ -147,15 +144,9 @@ export const Competitions = () => {
           displayedComps.push(competition);
         }
       }
+      setNoCompetitionsFound(displayedComps.length == 0);
     }
     setFilteredComps(displayedComps);
-  };
-
-  const removeWhitespaceAndCase = (input: string) => {
-    if (input === undefined) {
-      return "";
-    }
-    return input.replace(/\s+/g, "").toLowerCase();
   };
 
   // Find the distance in km between two sets of coordinates using Haversine formula
@@ -225,8 +216,8 @@ export const Competitions = () => {
                 {t("competition.postalcode")}
               </InputLabel>
               <OutlinedInput
-                error={invalidPostalCode}
-                value={postalCode}
+                error={invalidLocation}
+                value={displayLocation}
                 onChange={handleInputChange}
                 endAdornment={
                   <InputAdornment position="end">
@@ -241,7 +232,7 @@ export const Competitions = () => {
                     </Tooltip>
                   </InputAdornment>
                 }
-                label="Postal Code"
+                label="City or Postal code"
               />
             </FormControl>
             <Button
@@ -258,9 +249,16 @@ export const Competitions = () => {
         <Box margin="4rem">
           <CircularProgress />
         </Box>
-      ) : invalidPostalCode ? (
+      ) : invalidLocation ? (
         <Typography gutterBottom sx={{ maxWidth: "md", margin: "0 auto" }}>
-          {t("competition.notfound", { postalcode: invalidPostalCodeName })}
+          {t("competition.locationnotfound", { location: invalidLocationName })}
+        </Typography>
+      ) : noCompetitionsFound ? (
+        <Typography gutterBottom sx={{ maxWidth: "md", margin: "0 auto" }}>
+          {t("competition.nonefound", {
+            distance: distance,
+            location: locationInfo.name,
+          })}
         </Typography>
       ) : (
         <Box display="flex" justifyContent="center" flexWrap="wrap">

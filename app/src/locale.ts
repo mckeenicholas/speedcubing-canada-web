@@ -100,14 +100,16 @@ export const resources = {
         upcoming: "Upcoming Competitions",
         upcomingbody: "Here are some upcoming competitions in Canada!\n\n",
         comp: "Check out this competition organized by Speedcubing Canada!",
-        series: "Check out this upcoming series! As a reminder, competitors may only sign up for ONE of the competitions in a series. Read the competition pages carefully and ensure you register for the right competiton.",
+        series:
+          "Check out this upcoming series! As a reminder, competitors may only sign up for ONE of the competitions in a series. Read the competition pages carefully and ensure you register for the right competiton.",
         fee: "\n\nRegistration fee: ${{fee}} CAD",
         registration: {
           before: "\n<strong>Registration opens on: </strong>{{date}}",
           after: "\n<strong>Registration opened on: </strong>{{date}}",
           closes: "\n<strong>Registration closes on: </strong>{{date}}",
           closed: "\n<strong>Registration closed on: </strong>{{date}}",
-          count: "<strong>Registration:</strong> {{num}}/{{total}} spots filled\n\n",
+          count:
+            "<strong>Registration:</strong> {{num}}/{{total}} spots filled\n\n",
         },
         date: "<strong>Date:</strong> {{date}}\n",
         city: "<strong>City:</strong> {{city}}\n",
@@ -117,10 +119,12 @@ export const resources = {
         learnmore: "Learn more",
         showonly1: "Show competitions within:",
         showonly2: "of",
-        postalcode: "Postal Code",
+        postalcode: "City or Postal Code",
         distance: "Distance",
         region: "Region",
-        notfound: "\n\nUnable to find the postal code {{postalcode}}."
+        locationnotfound: "\n\nUnable to find the postal code {{location}}.",
+        nonefound:
+          "\n\nNo competitors found within {{distance}}km of {{location}}",
       },
       regions: {
         at: "Atlantic",
@@ -130,7 +134,7 @@ export const resources = {
         pr: "Prairies",
         te: "Territories",
         na: "N/A",
-    },
+      },
       provinces: {
         ab: "Alberta",
         bc: "British Columbia",
@@ -235,19 +239,23 @@ export const resources = {
           q: "Speedcubing Canada est-elle affiliée à la World Cube Association ?",
           a: "Speedcubing Canada fonctionne indépendamment de la World Cube Association, avec un conseil d'administration distinct. Speedcubing Canada est reconnue comme l'organisation régionale officielle du Canada par la <regionalOrg>WCA</regionalOrg>.",
         },
-      },  
+      },
       competition: {
         upcoming: "Concours à venir",
         upcomingbody: "Voici quelques concours à venir au Canada !\n\n",
         comp: "Découvrez cette compétition organisée par Speedcubing Canada !",
-        series: "Jetez un coup d'œil à cette série à venir ! Pour rappel, les concurrents ne peuvent s'inscrire qu'à UN seul des concours d'une série. Lisez attentivement les pages consacrées aux concours et assurez-vous de vous inscrire au bon concours.",
-        fee: "\n\nFrais d'inscription :  ${{fee}} CAD", 
+        series:
+          "Jetez un coup d'œil à cette série à venir ! Pour rappel, les concurrents ne peuvent s'inscrire qu'à UN seul des concours d'une série. Lisez attentivement les pages consacrées aux concours et assurez-vous de vous inscrire au bon concours.",
+        fee: "\n\nFrais d'inscription :  ${{fee}} CAD",
         registration: {
           before: "\n<strong>Ouverture des inscriptions : </strong>{{date}}",
           after: "\n<strong>Ouverture des inscriptions : </strong>{{date}}",
-          closes: "\n<strong>Les inscriptions sont closes le : </strong>{{date}}",
-          closed: "\n<strong>Les inscriptions sont closes le : </strong>{{date}}",
-          count: "<strong>Inscription:</strong> {{num}}/{{total}} places occupées\n\n",
+          closes:
+            "\n<strong>Les inscriptions sont closes le : </strong>{{date}}",
+          closed:
+            "\n<strong>Les inscriptions sont closes le : </strong>{{date}}",
+          count:
+            "<strong>Inscription:</strong> {{num}}/{{total}} places occupées\n\n",
         },
         date: "<strong>Date :</strong> {{date}}\n",
         city: "<strong>Ville :</strong> {{city}}\n",
