@@ -14,11 +14,15 @@ export const LINKS = {
     CO2007:
       "https://www.worldcubeassociation.org/competitions/CanadianOpen2007",
     API: {
-      COMPETITION_LIST: "https://www.worldcubeassociation.org/api/v0/competitions?country_iso2=CA",
-      COMPETITION_INFO: "https://www.worldcubeassociation.org/api/v0/competitions/",
-      COMPETITION_SERIES: "https://www.worldcubeassociation.org/api/v0/competition_series/",
+      COMPETITION_LIST:
+        "https://www.worldcubeassociation.org/api/v0/competitions?country_iso2=CA",
+      COMPETITION_INFO:
+        "https://www.worldcubeassociation.org/api/v0/competitions/",
+      COMPETITION_SERIES:
+        "https://www.worldcubeassociation.org/api/v0/competition_series/",
     },
   },
+  GEOCODE: "https://nominatim.openstreetmap.org/",
   FIRST_COMP: "https://youtu.be/xK2ycvTfgUY",
   COMP_BASICS: "https://youtu.be/vz1V0Gv0qX0",
   DISCORD_QC: "https://discord.gg/BTwYPg4qcJ",

@@ -33,6 +33,8 @@ export const Competitions = () => {
   const [invalidLocationName, setInvalidLocationName] = useState("");
   const [noCompetitionsFound, setNoCompetitionsFound] = useState(false);
 
+  const EMAIL = "info@speedcubingcanada.org";
+
   // Get a list of announced competitions within Canada
   const getCompetitions = async () => {
     const response = await fetch(LINKS.WCA.API.COMPETITION_LIST);
@@ -60,7 +62,6 @@ export const Competitions = () => {
     let newDistance = parseInt(event.target.value, 10);
     setDistance(newDistance);
     filterComps(locationInfo, newDistance);
-    console.log(filteredComps);
   };
 
   // Event handler for postal code input field
@@ -73,10 +74,13 @@ export const Competitions = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
-          await reverseGeocode(
+          setIsLoading(true);
+          const location = await reverseGeocode(
             position.coords.latitude,
             position.coords.longitude,
           );
+          filterComps(location, distance);
+          setIsLoading(false);
         },
         (error) => {
           console.error("Error getting user's location:", error.message);
@@ -91,16 +95,17 @@ export const Competitions = () => {
 
   // Find postal code to display if user selects locaiton automatically
   const reverseGeocode = async (latitude: number, longitude: number) => {
-    const apiUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&addressdetails=1&format=jsonv2`;
+    const apiUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&addressdetails=1&format=jsonv2&email=${EMAIL}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     setLocationInfo(data);
     setDisplayLocation(data.address.city);
+    return data;
   };
 
   // Find coordinates from postal code
   const geocode = async (location: string) => {
-    const apiUrl = `https://nominatim.openstreetmap.org/search?q=${displayLocation}&format=json`;
+    const apiUrl = `https://nominatim.openstreetmap.org/search?q=${displayLocation}&format=json&email=${EMAIL}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     if (data === undefined || data.length === 0) {
@@ -117,10 +122,14 @@ export const Competitions = () => {
   const handleButtonClick = async (event: any) => {
     let location = locationInfo;
     if (distance !== 0 && locationInfo.name !== displayLocation) {
+      setIsLoading(true);
       location = await geocode(displayLocation);
+      setIsLoading(false);
     }
-    setDisplayLocation(location.name);
-    filterComps(location, distance);
+    if (location !== null) {
+      setDisplayLocation(location.name);
+      filterComps(location, distance);
+    }
   };
 
   // Find the distance in km between two sets of coordinates using Haversine formula
@@ -171,7 +180,7 @@ export const Competitions = () => {
           displayedComps.push(competition);
         }
       }
-      setNoCompetitionsFound(displayedComps.length == 0);
+      setNoCompetitionsFound(displayedComps.length === 0);
     }
     setFilteredComps(displayedComps);
   };
