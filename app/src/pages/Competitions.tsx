@@ -56,8 +56,11 @@ export const Competitions = () => {
   }, []);
 
   // Event handler for distance dropdown
-  const handleChange = (event: SelectChangeEvent) => {
-    setDistance(parseInt(event.target.value, 10));
+  const handleDistanceChange = (event: SelectChangeEvent) => {
+    let newDistance = parseInt(event.target.value, 10);
+    setDistance(newDistance);
+    filterComps(locationInfo, newDistance);
+    console.log(filteredComps);
   };
 
   // Event handler for postal code input field
@@ -74,11 +77,6 @@ export const Competitions = () => {
             position.coords.latitude,
             position.coords.longitude,
           );
-          // setLocationInfo({
-          //   name: displayLocation,
-          //   lat: Number(position.coords.latitude),
-          //   lon: Number(position.coords.longitude),
-          // });
         },
         (error) => {
           console.error("Error getting user's location:", error.message);
@@ -102,7 +100,7 @@ export const Competitions = () => {
 
   // Find coordinates from postal code
   const geocode = async (location: string) => {
-    const apiUrl = `https://nominatim.openstreetmap.org/search?city=${displayLocation}&format=json`;
+    const apiUrl = `https://nominatim.openstreetmap.org/search?q=${displayLocation}&format=json`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     if (data === undefined || data.length === 0) {
@@ -121,32 +119,8 @@ export const Competitions = () => {
     if (distance !== 0 && locationInfo.name !== displayLocation) {
       location = await geocode(displayLocation);
     }
-    let displayedComps = [];
-    if (distance === 0) {
-      displayedComps = competitionList.filter((competition: any) => {
-        const endDate = new Date(competition.end_date + "T12:00:00.000Z");
-        return endDate > new Date();
-      });
-      setFilteredComps(displayedComps);
-      setInvalidLocation(false);
-      return;
-    } else if (location !== null) {
-      for (const competition of competitionList) {
-        if (
-          findDistance(
-            competition.latitude_degrees,
-            competition.longitude_degrees,
-            location.lat,
-            location.lon,
-          ) < Number(distance) &&
-          new Date(competition.end_date + "T12:00:00.000Z") > new Date()
-        ) {
-          displayedComps.push(competition);
-        }
-      }
-      setNoCompetitionsFound(displayedComps.length == 0);
-    }
-    setFilteredComps(displayedComps);
+    setDisplayLocation(location.name);
+    filterComps(location, distance);
   };
 
   // Find the distance in km between two sets of coordinates using Haversine formula
@@ -171,6 +145,35 @@ export const Competitions = () => {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return earthRadius * c;
+  };
+
+  const filterComps = (location: any, newDistance: number) => {
+    let displayedComps = [];
+    if (distance === 0) {
+      displayedComps = competitionList.filter((competition: any) => {
+        const endDate = new Date(competition.end_date + "T12:00:00.000Z");
+        return endDate > new Date();
+      });
+      setFilteredComps(displayedComps);
+      setInvalidLocation(false);
+      return;
+    } else if (locationInfo !== null) {
+      for (const competition of competitionList) {
+        if (
+          findDistance(
+            competition.latitude_degrees,
+            competition.longitude_degrees,
+            location.lat,
+            location.lon,
+          ) < newDistance &&
+          new Date(competition.end_date + "T12:00:00.000Z") > new Date()
+        ) {
+          displayedComps.push(competition);
+        }
+      }
+      setNoCompetitionsFound(displayedComps.length == 0);
+    }
+    setFilteredComps(displayedComps);
   };
 
   return (
@@ -199,7 +202,7 @@ export const Competitions = () => {
                 id="distance-selection"
                 value={distance.toString()}
                 label="Distnace"
-                onChange={handleChange}
+                onChange={handleDistanceChange}
               >
                 <MenuItem value={20}>20 km</MenuItem>
                 <MenuItem value={50}>50 km</MenuItem>
@@ -211,8 +214,8 @@ export const Competitions = () => {
               </Select>
             </FormControl>
             {t("competition.showonly2")}
-            <FormControl sx={{ width: "15ch" }}>
-              <InputLabel htmlFor="postal-code-box">
+            <FormControl sx={{ minwidth: "50ch" }}>
+              <InputLabel htmlFor="location-box">
                 {t("competition.postalcode")}
               </InputLabel>
               <OutlinedInput

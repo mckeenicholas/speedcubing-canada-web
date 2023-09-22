@@ -122,7 +122,7 @@ export const resources = {
         postalcode: "City or Postal Code",
         distance: "Distance",
         region: "Region",
-        locationnotfound: "\n\nUnable to find the postal code {{location}}.",
+        locationnotfound: "\n\nUnable to find {{location}}.",
         nonefound:
           "\n\nNo competitors found within {{distance}}km of {{location}}",
       },
