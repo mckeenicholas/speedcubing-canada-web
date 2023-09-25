@@ -13,12 +13,13 @@ import {
   InputAdornment,
   IconButton,
   Tooltip,
+  Fade,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Link } from "../components/Link";
 import { LINKS } from "./links";
 import { useState, useEffect } from "react";
-import { LocationOn, ArrowForward } from "@mui/icons-material";
+import { LocationOn, ArrowForward, KeyboardArrowUp } from "@mui/icons-material";
 
 export const Competitions = () => {
   const { t } = useTranslation();
@@ -32,6 +33,7 @@ export const Competitions = () => {
   const [invalidLocation, setInvalidLocation] = useState(false);
   const [invalidLocationName, setInvalidLocationName] = useState("");
   const [noCompetitionsFound, setNoCompetitionsFound] = useState(false);
+  const [Isvisible, setIsVisible] = useState(false);
 
   const EMAIL = "info@speedcubingcanada.org";
 
@@ -88,12 +90,12 @@ export const Competitions = () => {
           setIsLoading(false);
         },
         (error) => {
-          console.error("Error getting user's location:", error.message);
+          alert("Unable to get current location.")
           // Handle the error gracefully if needed
         },
       );
     } else {
-      console.error("Geolocation is not supported in this browser.");
+      alert("Geolocation is not supported by this browser.")
       // Handle the lack of geolocation support gracefully if needed
     }
   };
@@ -198,8 +200,36 @@ export const Competitions = () => {
     setFilteredComps(displayedComps);
   };
 
+  const toggleVisibility = () => {
+    setIsVisible(window.scrollY > 300);
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', toggleVisibility);
+    return () => {
+      window.removeEventListener('scroll', toggleVisibility);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+
   return (
     <Container maxWidth="xl" style={{ textAlign: "center" }}>
+      <Fade in={Isvisible}>
+        <Box sx={{position: "fixed"}}>   
+          <Button onClick={scrollToTop} variant="contained" sx={{position: "fixed", bottom: "75px", 
+                right: "20px",
+                zIndex: 1000}}>
+              <KeyboardArrowUp />
+            </Button>
+        </Box>
+      </Fade>
       <Box marginTop="4rem">
         <Typography component="h1" variant="h3" fontWeight="bold" gutterBottom>
           {t("competition.upcoming")}
@@ -286,10 +316,10 @@ export const Competitions = () => {
           })}
         </Typography>
       ) : (
-        <Box display="flex" justifyContent="center" flexWrap="wrap">
+        <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))" alignItems="center">
           {filteredComps
             .slice()
-            .reverse()
+            .reverse()  
             .map((item: any, index: any) => (
               <Box margin="1rem" padding="1rem" key={index}>
                 <Typography variant="h5" fontWeight="bold">
@@ -302,10 +332,6 @@ export const Competitions = () => {
                   )}
                   {" | "}
                   {item.city}
-                  {locationInfo.address
-                    ? t("competition.distancefromlocation", { distance: Math.round(findDistance(item.latitude_degrees, item.longitude_degrees, locationInfo.lat, locationInfo.lon)), location: locationInfo.address.city })
-                    : ""
-                  }
                 </Typography>
                 <Button
                   to={`competitions/${item.id}`}
