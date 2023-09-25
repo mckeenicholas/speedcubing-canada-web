@@ -124,7 +124,7 @@ export const resources = {
         region: "Region",
         locationnotfound: "\n\nUnable to find {{location}}.",
         nonefound:
-          "\n\nNo competitors found within {{distance}}km of {{location}}",
+          "\n\nNo competitions found within {{distance}} km of {{location}}",
       },
       regions: {
         at: "Atlantic",

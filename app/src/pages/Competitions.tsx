@@ -172,11 +172,13 @@ export const Competitions = () => {
   };
 
   const filterComps = (location: any, newDistance: number) => {
+    console.log(location, newDistance);
     let displayedComps = [];
     if (newDistance === 0) {
       displayedComps = competitionList;
       setFilteredComps(displayedComps);
       setInvalidLocation(false);
+      setNoCompetitionsFound(false);
       return;
     } else if (locationInfo !== null) {
       for (const competition of competitionList) {
