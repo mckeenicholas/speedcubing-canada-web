@@ -172,7 +172,6 @@ export const Competitions = () => {
   };
 
   const filterComps = (location: any, newDistance: number) => {
-    console.log(location, newDistance);
     let displayedComps = [];
     if (newDistance === 0) {
       displayedComps = competitionList;
@@ -303,6 +302,10 @@ export const Competitions = () => {
                   )}
                   {" | "}
                   {item.city}
+                  {locationInfo.address
+                    ? t("competition.distancefromlocation", { distance: Math.round(findDistance(item.latitude_degrees, item.longitude_degrees, locationInfo.lat, locationInfo.lon)), location: locationInfo.address.city })
+                    : ""
+                  }
                 </Typography>
                 <Button
                   to={`competitions/${item.id}`}
