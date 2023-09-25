@@ -45,14 +45,14 @@ export const Competitions = () => {
   useEffect(() => {
     const getCompetitionList = async () => {
       const competitions = await getCompetitions();
-      setCompetitionList(competitions);
-      setIsLoading(false);
       // The WCA's list can sometimes be cached, so remove past compeitions
       const filteredCompetitions = competitions.filter((competition: any) => {
-        const endDate = new Date(competition.end_date + "T12:00:00.000Z");
+        const endDate = new Date(competition.end_date + "T23:59:59.999Z");
         return endDate > new Date();
       });
+      setCompetitionList(filteredCompetitions);
       setFilteredComps(filteredCompetitions);
+      setIsLoading(false);
     };
     getCompetitionList();
   }, []);
@@ -61,6 +61,9 @@ export const Competitions = () => {
   const handleDistanceChange = (event: SelectChangeEvent) => {
     let newDistance = parseInt(event.target.value, 10);
     setDistance(newDistance);
+    if (displayLocation === "") {
+      newDistance = 0;
+    }
     filterComps(locationInfo, newDistance);
   };
 
@@ -79,6 +82,8 @@ export const Competitions = () => {
             position.coords.latitude,
             position.coords.longitude,
           );
+          setLocationInfo(location);
+          setDisplayLocation(location.address.city);
           filterComps(location, distance);
           setIsLoading(false);
         },
@@ -93,43 +98,53 @@ export const Competitions = () => {
     }
   };
 
+  // Event handler for the search button, finds the user's coordinates based off their inputted location, then filters out competitions
+  const handleButtonClick = async (event: any) => {
+    let location = locationInfo;
+    // If field is blank, treat as any location
+    if (displayLocation === "") {
+      filterComps(location, 0);
+      return;
+    }
+    if (locationInfo.name !== displayLocation) {
+      setIsLoading(true);
+      location = await geocode(displayLocation);
+      if (location === null) {
+        setInvalidLocation(true);
+        setInvalidLocationName(location);
+      } else {
+        setInvalidLocation(false);
+        setLocationInfo(location);
+        setDisplayLocation(location.name);
+        filterComps(location, distance);
+      }
+      setIsLoading(false);
+    }
+  };
+
   // Find postal code to display if user selects locaiton automatically
   const reverseGeocode = async (latitude: number, longitude: number) => {
     const apiUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&addressdetails=1&format=jsonv2&email=${EMAIL}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
-    setLocationInfo(data);
-    setDisplayLocation(data.address.city);
     return data;
   };
 
   // Find coordinates from postal code
   const geocode = async (location: string) => {
-    const apiUrl = `https://nominatim.openstreetmap.org/search?q=${displayLocation}&format=json&email=${EMAIL}`;
+    const apiUrl = `https://nominatim.openstreetmap.org/search?q=${displayLocation}&format=json&addressdetails=1&email=${EMAIL}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     if (data === undefined || data.length === 0) {
-      setInvalidLocation(true);
-      setInvalidLocationName(location);
       return null;
     }
-    setInvalidLocation(false);
-    setLocationInfo(data[0]);
-    return data[0];
-  };
-
-  // Event handler for the search button, finds the user's coordinates based off their inputted postal code, then filters out competitions
-  const handleButtonClick = async (event: any) => {
-    let location = locationInfo;
-    if (distance !== 0 && locationInfo.name !== displayLocation) {
-      setIsLoading(true);
-      location = await geocode(displayLocation);
-      setIsLoading(false);
+    // If multiple locations are returned by API, return first one within canada, otherwise return null
+    for (const location of data) {
+      if (location.address.country_code === "ca") {
+        return location;
+      }
     }
-    if (location !== null) {
-      setDisplayLocation(location.name);
-      filterComps(location, distance);
-    }
+    return null;
   };
 
   // Find the distance in km between two sets of coordinates using Haversine formula
@@ -158,11 +173,8 @@ export const Competitions = () => {
 
   const filterComps = (location: any, newDistance: number) => {
     let displayedComps = [];
-    if (distance === 0) {
-      displayedComps = competitionList.filter((competition: any) => {
-        const endDate = new Date(competition.end_date + "T12:00:00.000Z");
-        return endDate > new Date();
-      });
+    if (newDistance === 0) {
+      displayedComps = competitionList;
       setFilteredComps(displayedComps);
       setInvalidLocation(false);
       return;
