@@ -70,8 +70,7 @@ export const Competitions = () => {
   };
 
   // Event handler for postal code input field
-  const handleInputChange = (event: any) => {
-    setDisplayLocation(event.target.value);
+  const handleInputChange = (event: any) => {setDisplayLocation(event.target.value);
   };
 
   // Handle if the user selects location automatically
@@ -217,7 +216,6 @@ export const Competitions = () => {
       behavior: "smooth",
     });
   };
-
 
   return (
     <Container maxWidth="xl" style={{ textAlign: "center" }}>
