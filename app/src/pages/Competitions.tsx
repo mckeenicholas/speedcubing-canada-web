@@ -70,7 +70,8 @@ export const Competitions = () => {
   };
 
   // Event handler for postal code input field
-  const handleInputChange = (event: any) => {setDisplayLocation(event.target.value);
+  const handleInputChange = (event: any) => {
+    setDisplayLocation(event.target.value);
   };
 
   // Handle if the user selects location automatically
@@ -83,18 +84,19 @@ export const Competitions = () => {
             position.coords.latitude,
             position.coords.longitude,
           );
+          location.name = location.address.city;
           setLocationInfo(location);
           setDisplayLocation(location.address.city);
           filterComps(location, distance);
           setIsLoading(false);
         },
         (error) => {
-          alert("Unable to get current location.")
+          alert("Unable to get current location.");
           // Handle the error gracefully if needed
         },
       );
     } else {
-      alert("Geolocation is not supported by this browser.")
+      alert("Geolocation is not supported by this browser.");
       // Handle the lack of geolocation support gracefully if needed
     }
   };
@@ -204,9 +206,9 @@ export const Competitions = () => {
   };
 
   useEffect(() => {
-    window.addEventListener('scroll', toggleVisibility);
+    window.addEventListener("scroll", toggleVisibility);
     return () => {
-      window.removeEventListener('scroll', toggleVisibility);
+      window.removeEventListener("scroll", toggleVisibility);
     };
   }, []);
 
@@ -220,12 +222,19 @@ export const Competitions = () => {
   return (
     <Container maxWidth="xl" style={{ textAlign: "center" }}>
       <Fade in={Isvisible}>
-        <Box sx={{position: "fixed"}}>   
-          <Button onClick={scrollToTop} variant="contained" sx={{position: "fixed", bottom: "75px", 
-                right: "20px",
-                zIndex: 1000}}>
-              <KeyboardArrowUp />
-            </Button>
+        <Box sx={{ position: "fixed" }}>
+          <Button
+            onClick={scrollToTop}
+            variant="contained"
+            sx={{
+              position: "fixed",
+              bottom: "75px",
+              right: "20px",
+              zIndex: 1000,
+            }}
+          >
+            <KeyboardArrowUp />
+          </Button>
         </Box>
       </Fade>
       <Box marginTop="4rem">
@@ -314,10 +323,14 @@ export const Competitions = () => {
           })}
         </Typography>
       ) : (
-        <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))" alignItems="center">
+        <Box
+          display="grid"
+          gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
+          alignItems="center"
+        >
           {filteredComps
             .slice()
-            .reverse()  
+            .reverse()
             .map((item: any, index: any) => (
               <Box margin="1rem" padding="1rem" key={index}>
                 <Typography variant="h5" fontWeight="bold">
