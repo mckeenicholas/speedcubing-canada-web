@@ -123,16 +123,8 @@ export const resources = {
         distance: "Distance",
         region: "Region",
         locationnotfound: "\n\nUnable to find {{location}}.",
-        nonefound: "\n\nNo competitions found within {{distance}} km of {{location}}",
-      },
-      regions: {
-        at: "Atlantic",
-        bc: "British Columbia",
-        qc: "Quebec",
-        on: "Ontario",
-        pr: "Prairies",
-        te: "Territories",
-        na: "N/A",
+        nonefound:
+          "\n\nNo competitions found within {{distance}} km of {{location}}",
       },
       provinces: {
         ab: "Alberta",
@@ -264,15 +256,6 @@ export const resources = {
         learnmore: "En savoir plus",
         showonly: "Les concours ne se déroulent qu'en :",
         region: "Région",
-      },
-      regions: {
-        at: "Atlantique",
-        bc: "Colombie-Britannique",
-        qc: "Québec",
-        on: "Ontario",
-        pr: "Prairies",
-        te: "Territoires",
-        na: "N/A",
       },
       provinces: {
         ab: "Alberta",
