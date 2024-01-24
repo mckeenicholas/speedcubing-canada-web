@@ -16,3 +16,10 @@ export type wcif = {
   persons: { registration: null | { status: string } }[];
   schedule: { venues: { name: string }[] };
 };
+
+export type CompetitionListElement = {
+  id: string;
+  name: string;
+  date: { from: string; till: string };
+  city: string;
+};

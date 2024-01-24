@@ -18,6 +18,8 @@ export const LINKS = {
         "https://www.worldcubeassociation.org/api/v0/competitions/",
       COMPETITION_SERIES:
         "https://www.worldcubeassociation.org/api/v0/competition_series/",
+      COMPETITION_LIST:
+        "https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/competitions/CA.json",
     },
   },
   FIRST_COMP: "https://youtu.be/xK2ycvTfgUY",

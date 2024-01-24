@@ -96,6 +96,9 @@ export const resources = {
         },
       },
       competition: {
+        upcoming: "Upcoming Competitions",
+        upcomingbody: "Here are some upcoming competitions in Canada!\n\n",
+        learnmore: "Learn more",
         header: "Check out this competition organized by Speedcubing Canada!",
         series:
           "Check out this upcoming series! As a reminder, competitors may only sign up for ONE of the competitions in a series. Read the competition pages carefully and ensure you register for the right competiton.",
