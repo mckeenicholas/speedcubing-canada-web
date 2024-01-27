@@ -5,8 +5,6 @@ export const LINKS = {
   TWITTER: "https://twitter.com/SpeedcubingCAN",
   WCA: {
     HOME: "https://www.worldcubeassociation.org",
-    COMPS_CANADA:
-      "https://www.worldcubeassociation.org/competitions?region=Canada&show_registration_status=on",
     REGS: "https://www.worldcubeassociation.org/regulations",
     DELEGATES: "https://www.worldcubeassociation.org/delegates",
     REGIONAL_ORGS: "https://www.worldcubeassociation.org/organizations",

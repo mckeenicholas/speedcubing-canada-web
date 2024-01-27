@@ -2,9 +2,13 @@ import { Button, Box, Container, Typography } from "@mui/material";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "../components/Link";
 import { LINKS } from "./links";
+import { getLocaleOrFallback } from "../locale";
+import { useParams } from "react-router-dom";
 
 export const About = () => {
   const { t } = useTranslation();
+  const params = useParams();
+  const locale = getLocaleOrFallback(params.locale as string);
 
   return (
     <Container maxWidth="md">
@@ -70,7 +74,7 @@ export const About = () => {
         <Typography gutterBottom>{t("comps.body")}</Typography>
         <Box marginTop="2rem">
           <Button
-            to={LINKS.WCA.COMPS_CANADA}
+            to={`/${locale}/competitions`}
             component={Link}
             variant="contained"
             size="large"
