@@ -14,7 +14,7 @@ const QUESTIONS = [
 
 const INTERPOLATE = {
   "when-is-the-next-wca-competition-in-my-area": {
-    wcaComps: <Link to={LINKS.WCA.COMPS_CANADA} />,
+    wcaComps: <Link to={"./competitions"} />,
     mailingList: <Link to={LINKS.MAILING_LIST} />,
   },
   "im-going-to-my-first-wca-competition-what-do-i-need-to-know": {

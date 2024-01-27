@@ -7,8 +7,6 @@ import { useParams } from "react-router-dom";
 
 export const About = () => {
   const { t } = useTranslation();
-  const params = useParams();
-  const locale = getLocaleOrFallback(params.locale as string);
 
   return (
     <Container maxWidth="md">
@@ -74,7 +72,7 @@ export const About = () => {
         <Typography gutterBottom>{t("comps.body")}</Typography>
         <Box marginTop="2rem">
           <Button
-            to={`/${locale}/competitions`}
+            to={"./competitions"}
             component={Link}
             variant="contained"
             size="large"

@@ -9,8 +9,6 @@ import { CompetitionListElement, wcif } from "../types";
 
 export const Competitions = () => {
   const { t } = useTranslation();
-  const params = useParams();
-  const locale = getLocaleOrFallback(params.locale as string);
   const navigate = useNavigate();
 
   const [competitionList, setCompetitionList] = useState<
@@ -47,9 +45,9 @@ export const Competitions = () => {
     });
     setIsLoading(false);
     if (data.series) {
-      navigate(`/${locale}/competitions/series/${data.series.id}`);
+      navigate(`./series/${data.series.id}`);
     } else {
-      navigate(`/${locale}/competitions/${compId}`);
+      navigate(`./${compId}`);
     }
   };
 
